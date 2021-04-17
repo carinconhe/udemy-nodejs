@@ -1,5 +1,10 @@
 <h1><%= post.title %></h1>
 <div>Price : <%= post.price %></div>
+<div>
+    <%post.images.forEach(function(image){%>
+        <img src="<%= image.url%>" alt="name image" width="100px">
+    <%});%>
+</div>
 <div>Description : <%= post.description %></div>
 <div>Location : <%= post.location %></div>
 <div>
