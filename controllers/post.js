@@ -12,7 +12,7 @@ module.exports ={
     //Posts Index
     async postIndex(req,res,next){
         let posts = await Post.find({});
-        res.render('posts/index',{ posts });
+        res.render('posts/index',{ posts , title: 'Posts index'});
     },
     //Post New
     postNew(req,res,next){
@@ -35,10 +35,12 @@ module.exports ={
         .send()
         req.body.post.coordinates = response.body.features[0].geometry.coordinates;
         let post = await Post.create(req.body.post);
+        req.session.success = 'Post created successfully!'
         res.redirect(`/posts/${post.id}`);
     },
     //Post Show
     async postShow(req,res,next){
+        throw new Error('This a big bad error!')
         let post = await Post.findById(req.params.id)
         res.render('posts/show',{post})
     },
