@@ -106,7 +106,7 @@ module.exports ={
             //delete images from cloudinary
             await cloudinary.v2.uploader.destroy(image.public_id);
         }
-        await post.remove();
+        await post.remove()
         res.redirect(`/posts`);
     }
 }
