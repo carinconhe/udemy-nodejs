@@ -1,4 +1,5 @@
 require('dotenv').config()
+
 const createError = require('http-errors');
 const express = require('express');
 const engine = require('ejs-mate');
@@ -19,7 +20,7 @@ const reviewsRouter = require('./routes/reviews');
 const app = express();
 
 //connect to the database 
-mongoose.connect('mongodb://localhost:27017/suft-shop-mapbox', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect('mongodb://localhost:27017/suft-shop', {useNewUrlParser: true, useUnifiedTopology: true});
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -57,16 +58,21 @@ passport.deserializeUser(User.deserializeUser());
 
 //Set local variabless middleware
 app.use(function(req,res, next){
-  //Set default page title
-  res.locals.title = 'Surf Shop'
-  //set success flash message
+  req.user = {
+    "_id" : "609537eb8ddeaaa801d6e362",
+	  "username" : "camilo",
+  }
+  res.locals.currentUser = req.user;
+  // set default page title
+  res.locals.title = 'Surf Shop';
+  // set success flash message
   res.locals.success = req.session.success || '';
   delete req.session.success;
-  //set error flash message
+  // set error flash message
   res.locals.error = req.session.error || '';
   delete req.session.error;
-  //Continue on to next functio in middeware chain
-  next()
+  // continue on to next function in middleware chain
+  next();
 })
 
 //Mount Routes
