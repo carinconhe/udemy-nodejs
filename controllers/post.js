@@ -1,6 +1,7 @@
+const mapBoxToken = process.env.MAPBOX_TOKEN;
 const Post = require ('../models/post')
 const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding"); 
-const geocodingClient = mbxGeocoding({ accessToken: process.env.MAPBOX_TOKEN}); 
+const geocodingClient = mbxGeocoding({ accessToken: mapBoxToken}); 
 const cloudinary = require('cloudinary')
 cloudinary.config({
     cloud_name : process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,12 +12,17 @@ cloudinary.config({
 module.exports = {
 	// Posts Index
 	async postIndex(req, res, next) {
-		let posts = await Post.paginate({},{
+		let posts = await Post.paginate({}, {
 			page: req.query.page || 1,
-			limit:10
+			limit: 10,
+			sort: {'_id':-1}
 		});
-		posts.page = Number(posts.page)
-		res.render('posts/index', { posts, title: 'Posts Index' });
+		posts.page = Number(posts.page);
+		res.render('posts/index', { 
+			posts, 
+			mapBoxToken, 
+			title: 'Posts Index' 
+		});
 	},
 	// Posts New
 	postNew(req, res, next) {
@@ -38,8 +44,10 @@ module.exports = {
 		    limit: 1
 		  })
 		  .send();
-		req.body.post.coordinates = response.body.features[0].geometry.coordinates;
-		let post = await Post.create(req.body.post);
+		req.body.post.geometry = response.body.features[0].geometry;
+		let post = new Post(req.body.post);
+		post.properties.description = `<strong><a href="/posts/${post._id}">${post.title}</a></strong><p>${post.location}</p><p>${post.description.substring(0, 20)}...</p>`;
+		await post.save();
 		req.session.success = 'Post created successfully!';
 		res.redirect(`/posts/${post.id}`);
 	},
@@ -53,9 +61,9 @@ module.exports = {
 				model: 'User'
 			}
 		});
+		const floorRating = post.calculateAvgRating();
 		// the following line is not covered in a lecture
-		let mapBoxToken = process.env.MAPBOX_TOKEN;
-		res.render('posts/show', { post, mapBoxToken });
+		res.render('posts/show', { post, mapBoxToken, floorRating });
 	},
 	// Posts Edit
 	async postEdit(req, res, next) {
@@ -110,6 +118,7 @@ module.exports = {
 		post.title = req.body.post.title;
 		post.description = req.body.post.description;
 		post.price = req.body.post.price;
+		post.properties.description = `<strong><a href="/posts/${post._id}">${post.title}</a></strong><p>${post.location}</p><p>${post.description.substring(0, 20)}...</p>`;
 		// save the updated post into the db
 		post.save();
 		// redirect to show page
