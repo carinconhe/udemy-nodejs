@@ -1,16 +1,17 @@
-require('dotenv').config()
+require('dotenv').config();
 
-const createError = require('http-errors');
 const express = require('express');
 const engine = require('ejs-mate');
 const path = require('path');
-const cookieParser = require('cookie-parser');
+const favicon = require('serve-favicon');
 const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const passport = require('passport');
 const User = require('./models/user');
 const session = require('express-session');
 const mongoose = require('mongoose');
-const metthodOverride = require('method-override');
+const methodOverride = require('method-override');
 // const seedPosts = require('./seeds');
 // seedPosts();
 
@@ -26,31 +27,33 @@ mongoose.connect('mongodb://localhost:27017/suft-shop', {useNewUrlParser: true, 
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  console.log('were connected!');
+db.once('open', () => {
+  console.log('we\'re connected!');
 });
 
-//use ejs-locals for all ejs templates:
-app.engine('ejs',engine);
+// use ejs-locals for all ejs templates:
+app.engine('ejs', engine);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-//set public asstes directory
-app.use(express.static('public'))
+// set public assets directory
+app.use(express.static('public'));
 
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(metthodOverride('_method'));
+app.use(methodOverride('_method'));
 
-//Configure passport and Session 
+// Configure Passport and Sessions
 app.use(session({
   secret: 'hang ten dude!',
   resave: false,
   saveUninitialized: true
-}))
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -58,14 +61,14 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-//Set local variabless middleware
-app.use(function(req,res, next){
-  req.user = {
-    //"_id" : "609537eb8ddeaaa801d6e362",
-    //"_id" : "60a03b2bf087fbce49448779",
-    "_id" : "60a5900743e6fd1f1a172db9",
-	  "username" : "camilo",
-  }
+// set local variables middleware
+app.use(function(req, res, next) {
+  // req.user = {
+  //   // '_id' : '5bb27cd1f986d278582aa58c',
+  //   // '_id' : '5bc521c0b142b6d7f7523406',
+  //   '_id' : '5bfed10ad176f845e38aec92',
+  //   'username' : 'ian3'
+  // }
   res.locals.currentUser = req.user;
   // set default page title
   res.locals.title = 'Surf Shop';
@@ -77,7 +80,7 @@ app.use(function(req,res, next){
   delete req.session.error;
   // continue on to next function in middleware chain
   next();
-})
+});
 
 //Mount Routes
 app.use('/', indexRouter);
@@ -98,9 +101,9 @@ app.use(function(err, req, res, next) {
   // // render the error page
   // res.status(err.status || 500);
   // res.render('error');
-  console.log(err)
-  req.session.error = err.message
-  res.redirect('back')
+  console.log(err);
+  req.session.error = err.message;
+  res.redirect('back');
 });
 
 module.exports = app;
