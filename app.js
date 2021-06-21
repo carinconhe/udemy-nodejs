@@ -6,7 +6,6 @@ const path = require('path');
 const favicon = require('serve-favicon');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
 const passport = require('passport');
 const User = require('./models/user');
 const session = require('express-session');
@@ -23,7 +22,12 @@ const reviewsRouter = require('./routes/reviews');
 const app = express();
 
 //connect to the database 
-mongoose.connect('mongodb://localhost:27017/suft-shop', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect('mongodb://localhost:27017/suft-shop', {
+  useNewUrlParser: true, 
+  useUnifiedTopology: true,
+  useCreateIndex: true
+});
+
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
