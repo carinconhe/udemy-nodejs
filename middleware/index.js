@@ -1,8 +1,9 @@
 const Review = require('../models/review');
 const User = require('../models/user');
-const Post = require('../models/post')
+const Post = require('../models/post');
+const { cloudinary } = require('../cloudinary');
 
-module.exports = {
+const middleware = {
 	asyncErrorHandler: (fn) =>
 		(req, res, next) => {
 			Promise.resolve(fn(req, res, next))
@@ -32,45 +33,44 @@ module.exports = {
 		res.redirect('back');
 	},
 	isValidPassword: async (req, res, next) => {
-		const { user } = await User.authenticate()(req.user.username, req.body.currentPassword)
-		if(user) { 
+		const { user } = await User.authenticate()(req.user.username, req.body.currentPassword);
+		if (user) {
 			// add user to res.locals
 			res.locals.user = user;
-			// go to next middleware
 			next();
 		} else {
-			// flash an error
-			req.session.error = 'Incorrect Current Password!';
-			// short circuit the route middleware and redirect to /profile
+			middleware.deleteProfileImage(req);
+			req.session.error = 'Incorrect current password!';
 			return res.redirect('/profile');
 		}
 	},
 	changePassword: async (req, res, next) => {
-		// destructure new password values from req.body object
-		const { 
+		const {
 			newPassword,
 			passwordConfirmation
 		} = req.body;
-
-		// check if new password values exist
-		if (newPassword && passwordConfirmation) {
-			// destructure user from res.locals
+	
+		if (newPassword && !passwordConfirmation) {
+			middleware.deleteProfileImage(req);
+			req.session.error = 'Missing password confirmation!';
+			return res.redirect('/profile');
+		} else if (newPassword && passwordConfirmation) {
 			const { user } = res.locals;
-				// check if new passwords match
-				if (newPassword === passwordConfirmation) {
-					// set new password on user object
-					await user.setPassword(newPassword);
-					// go to next middleware
-					next();
-				} else {
-					// flash error
-					req.session.error = 'New passwords must match!';
-					// short circuit the route middleware and redirect to /profile
-					return res.redirect('/profile');
-				}
+			if (newPassword === passwordConfirmation) {
+				await user.setPassword(newPassword);
+				next();
+			} else {
+				middleware.deleteProfileImage(req);
+				req.session.error = 'New passwords must match!';
+				return res.redirect('/profile');
+			}
 		} else {
-			// go to next middleware
 			next();
 		}
+	},
+	deleteProfileImage: async (req) => {
+		if (req.file) await cloudinary.v2.uploader.destroy(req.file.public_id);
 	}
 }
+
+module.exports = middleware;
