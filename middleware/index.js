@@ -24,8 +24,8 @@ const middleware = {
 		res.redirect('/login');
 	},
 	isAuthor: async (req, res, next) => {
-		const post = await Post.findById(req.params.id)
-		if(post.author.equals(req.user._id)){
+		const post = await Post.findById(req.params.id);
+		if (post.author.equals(req.user._id)) {
 			res.locals.post = post;
 			return next();
 		}
@@ -49,7 +49,7 @@ const middleware = {
 			newPassword,
 			passwordConfirmation
 		} = req.body;
-	
+
 		if (newPassword && !passwordConfirmation) {
 			middleware.deleteProfileImage(req);
 			req.session.error = 'Missing password confirmation!';
@@ -68,9 +68,9 @@ const middleware = {
 			next();
 		}
 	},
-	deleteProfileImage: async (req) => {
+	deleteProfileImage: async req => {
 		if (req.file) await cloudinary.v2.uploader.destroy(req.file.public_id);
 	}
-}
+};
 
 module.exports = middleware;

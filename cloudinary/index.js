@@ -1,3 +1,4 @@
+const path = require ('path');
 const crypto = require('crypto')
 const cloudinary = require('cloudinary').v2
 cloudinary.config({
@@ -14,10 +15,9 @@ const storage = new CloudinaryStorage({
     buf = buf.toString('hex');
     let uniqFileName = file.originalname.replace(/\.jpeg|\.jpg|\.png/ig, '');
     uniqFileName += buf;
-    console.log(uniqFileName)
       return {
         folder: 'surf-shop',
-        format: 'jpeg',
+        format: path.extname(file.originalname).replace('.',''),
         filename: uniqFileName,
       };
     },

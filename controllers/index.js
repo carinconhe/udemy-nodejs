@@ -21,10 +21,7 @@ module.exports = {
 		try {
 			if (req.file) {
 				const { secure_url, public_id } = req.file;
-				req.body.image = {
-					secure_url,
-					public_id
-				}
+				req.body.image = { secure_url, public_id };
 			}
 			const user = await User.register(new User(req.body), req.body.password);
 			req.login(user, function(err) {
@@ -66,10 +63,9 @@ module.exports = {
 	  req.logout();
 	  res.redirect('/');
 	},
-	// GET /profile
 	async getProfile(req, res, next) {
-	  const posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
-	  res.render('profile', { posts });
+		const posts = await Post.find().where('author').equals(req.user._id).limit(10).exec();
+		res.render('profile', { posts });
 	},
 	async updateProfile(req, res, next) {
 		const {
@@ -84,10 +80,11 @@ module.exports = {
 			const { secure_url, public_id } = req.file;
 			user.image = { secure_url, public_id };
 		}
+		console.log(user.image);
 		await user.save();
-		const login = util.promisify(req.login.bind(req));
-		await login(user);
+		// const login = util.promisify(req.login.bind(req));
+		// await login(user);
 		req.session.success = 'Profile successfully updated!';
-		res.redirect('/profile');
+		//res.redirect('/profile');
 	}
 }
